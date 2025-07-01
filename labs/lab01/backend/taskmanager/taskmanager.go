@@ -5,13 +5,10 @@ import (
 	"time"
 )
 
+// Predefined errors
 var (
-	// ErrTaskNotFound is returned when a task is not found
 	ErrTaskNotFound = errors.New("task not found")
-	// ErrEmptyTitle is returned when the task title is empty
-	ErrEmptyTitle = errors.New("task title cannot be empty")
-	// ErrInvalidID is returned when the task ID is invalid
-	ErrInvalidID = errors.New("invalid task ID")
+	ErrEmptyTitle   = errors.New("title cannot be empty")
 )
 
 // Task represents a single task
@@ -25,7 +22,7 @@ type Task struct {
 
 // TaskManager manages a collection of tasks
 type TaskManager struct {
-	tasks  map[int]*Task
+	tasks  map[int]Task
 	nextID int
 }
 
@@ -59,7 +56,7 @@ func (tm *TaskManager) AddTask(title, description string) (*Task, error) {
 	return newTask, nil
 }
 
-// UpdateTask updates an existing task
+// UpdateTask updates an existing task, returns an error if the title is empty or the task is not found
 func (tm *TaskManager) UpdateTask(id int, title, description string, done bool) error {
 	if id <= 0 {
 		return ErrInvalidID
@@ -82,7 +79,7 @@ func (tm *TaskManager) UpdateTask(id int, title, description string, done bool) 
 	return nil
 }
 
-// DeleteTask removes a task from the manager
+// DeleteTask removes a task from the manager, returns an error if the task is not found
 func (tm *TaskManager) DeleteTask(id int) error {
 	if id <= 0 {
 		return ErrInvalidID

@@ -6,13 +6,11 @@ import (
 	"regexp"
 )
 
+// Predefined errors
 var (
-	// ErrInvalidEmail is returned when the email format is invalid
+	ErrInvalidName  = errors.New("invalid name: must be between 1 and 30 characters")
+	ErrInvalidAge   = errors.New("invalid age: must be between 0 and 150")
 	ErrInvalidEmail = errors.New("invalid email format")
-	// ErrInvalidAge is returned when the age is invalid
-	ErrInvalidAge = errors.New("invalid age: must be between 0 and 150")
-	// ErrEmptyName is returned when the name is empty
-	ErrEmptyName = errors.New("name cannot be empty")
 )
 
 // User represents a user in the system
@@ -55,14 +53,27 @@ func (u *User) Validate() error {
 	return nil
 }
 
-// String returns a string representation of the user
+// String returns a string representation of the user, formatted as "Name: <name>, Age: <age>, Email: <email>"
 func (u *User) String() string {
 	return fmt.Sprintf("User with name: %s, age: %d, email: %s", u.Name, u.Age, u.Email)
 }
 
+// NewUser creates a new user with validation, returns an error if the user is not valid
+func NewUser(name string, age int, email string) (*User, error) {
+	// TODO: Implement this function
+	return nil, nil
+}
+
 // IsValidEmail checks if the email format is valid
+// You can use regexp.MustCompile to compile the email regex
 func IsValidEmail(email string) bool {
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(pattern)
 	return re.Match([]byte(email))
+}
+
+// IsValidAge checks if the age is valid, returns false if the age is not between 0 and 150
+func IsValidAge(age int) bool {
+	// TODO: Implement this function
+	return false
 }
