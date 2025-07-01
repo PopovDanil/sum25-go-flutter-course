@@ -29,20 +29,20 @@ type TaskManager struct {
 // NewTaskManager creates a new task manager
 func NewTaskManager() *TaskManager {
 	return &TaskManager{
-		tasks:  make(map[int]*Task),
+		tasks:  make(map[int]Task),
 		nextID: 1,
 	}
 }
 
 // AddTask adds a new task to the manager
-func (tm *TaskManager) AddTask(title, description string) (*Task, error) {
+func (tm *TaskManager) AddTask(title, description string) (Task, error) {
 	// TODO: Implement task addition
 
 	if title == "" {
-		return nil, ErrEmptyTitle
+		return Task{}, ErrEmptyTitle
 	}
 
-	newTask := &Task{
+	newTask := Task{
 		ID:          tm.nextID,
 		Title:       title,
 		Description: description,
@@ -58,13 +58,7 @@ func (tm *TaskManager) AddTask(title, description string) (*Task, error) {
 
 // UpdateTask updates an existing task, returns an error if the title is empty or the task is not found
 func (tm *TaskManager) UpdateTask(id int, title, description string, done bool) error {
-	if id <= 0 {
-		return ErrInvalidID
-	}
-
-	taskToUpdate := tm.tasks[id]
-
-	if taskToUpdate == nil {
+	if id < 0 {
 		return ErrTaskNotFound
 	}
 
@@ -72,17 +66,26 @@ func (tm *TaskManager) UpdateTask(id int, title, description string, done bool) 
 		return ErrEmptyTitle
 	}
 
-	taskToUpdate.Title = title
-	taskToUpdate.Description = description
-	taskToUpdate.Done = done
+	if _, ok := tm.tasks[id]; !ok {
+		return ErrTaskNotFound
+	}
 
+	updatedTask := Task{
+		Title:       title,
+		Description: description,
+		Done:        done,
+	}
+
+	delete(tm.tasks, id)
+
+	tm.tasks[id] = updatedTask
 	return nil
 }
 
 // DeleteTask removes a task from the manager, returns an error if the task is not found
 func (tm *TaskManager) DeleteTask(id int) error {
 	if id <= 0 {
-		return ErrInvalidID
+		return ErrTaskNotFound
 	}
 
 	_, ok := tm.tasks[id]
@@ -97,28 +100,28 @@ func (tm *TaskManager) DeleteTask(id int) error {
 }
 
 // GetTask retrieves a task by ID
-func (tm *TaskManager) GetTask(id int) (*Task, error) {
+func (tm *TaskManager) GetTask(id int) (Task, error) {
 	if id <= 0 {
-		return nil, ErrInvalidID
+		return Task{}, ErrTaskNotFound
 	}
 
 	task, ok := tm.tasks[id]
 
 	if !ok {
-		return nil, ErrTaskNotFound
+		return Task{}, ErrTaskNotFound
 	}
 
 	return task, nil
 }
 
 // ListTasks returns all tasks, optionally filtered by done status
-func (tm *TaskManager) ListTasks(filterDone *bool) []*Task {
+func (tm *TaskManager) ListTasks(filterDone *bool) []Task {
 
-	var tasks []*Task
+	var tasks []Task
 
 	for _, task := range tm.tasks {
-		if *filterDone {
-			if task.Done {
+		if filterDone != nil {
+			if *filterDone == task.Done {
 				tasks = append(tasks, task)
 			}
 		} else {
