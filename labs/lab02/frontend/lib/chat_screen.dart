@@ -117,32 +117,48 @@ class _ChatScreenState extends State<ChatScreen> {
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
-                                  color: Colors.blueGrey,
+                                  color: Colors.greenAccent,
                                 ),
-                                child: Text(_messages[index]),
+                                child: Text(
+                                  _messages[index],
+                                  style: TextStyle(fontSize: 20),
+                                ),
                               ));
                         },
                       ),
                       if (_loading)
-                        const Center(child: CircularProgressIndicator()),
+                        const Center(
+                            child: CircularProgressIndicator(
+                          color: Colors.greenAccent,
+                        )),
                     ],
                   ),
-                )
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                    child: TextField(
-                  controller: _controller,
-                  decoration: InputDecoration(
-                    hintText: 'Type your message...',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    color: Colors.greenAccent,
                   ),
-                )),
-                IconButton(
-                    onPressed: _loading ? null : _sendMessage,
-                    icon: Icon(Icons.send))
+                  padding: EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: TextField(
+                        controller: _controller,
+                        decoration: InputDecoration(
+                          hintText: 'Type your message...',
+                          contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
+                          border: InputBorder.none,
+                        ),
+                      )),
+                      IconButton(
+                          iconSize: MediaQuery.of(context).size.width * 0.017,
+                          color: const Color.fromARGB(255, 5, 20, 156),
+                          onPressed: _loading ? null : _sendMessage,
+                          icon: Icon(Icons.send))
+                    ],
+                  ),
+                ),
               ],
             ),
           ],

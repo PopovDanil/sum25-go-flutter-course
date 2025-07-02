@@ -43,12 +43,13 @@ class _UserProfileState extends State<UserProfile> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Build user profile UI with loading, error, and user info
     return Scaffold(
       appBar: AppBar(title: const Text('User Profile')),
       body: Center(
           child: _loading
-              ? CircularProgressIndicator()
+              ? CircularProgressIndicator(
+                  color: Colors.greenAccent,
+                )
               : _error != null
                   ? Text("error: $_error!",
                       textAlign: TextAlign.center,

@@ -17,7 +17,7 @@ class ChatService {
   }
 
   Future<void> sendMessage(String msg) async {
-    await Future.delayed(const Duration(microseconds: 300));
+    await Future.delayed(const Duration(seconds: 1));
     if (failSend) {
       throw Exception("Send failed");
     }
