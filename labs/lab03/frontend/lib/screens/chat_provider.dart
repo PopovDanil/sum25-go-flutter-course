@@ -1,66 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lab03_frontend/models/message.dart';
-import 'package:provider/provider.dart';
-import 'screens/chat_screen.dart';
-import 'services/api_service.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final ApiService _apiService = ApiService();
-    return MultiProvider(
-        providers: [
-          Provider<ApiService>.value(value: _apiService),
-          ChangeNotifierProvider(create: (_) => ChatProvider(_apiService)),
-        ],
-        child: MaterialApp(
-          title: 'Lab 03 REST API Chat',
-          theme: ThemeData(
-            primaryColor: Colors.blue,
-            colorScheme: ColorScheme.fromSwatch(
-              primarySwatch: Colors.blue,
-              accentColor: Colors.orange,
-            ),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              elevation: 4,
-            ),
-            primarySwatch: Colors.blue,
-            useMaterial3: true,
-            elevatedButtonTheme: ElevatedButtonThemeData(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-          initialRoute: '/',
-          routes: {
-            '/splash': (context) => const CircularProgressIndicator(),
-            '/': (context) => const ChatScreen(),
-          },
-          onUnknownRoute: (settings) => MaterialPageRoute(
-            builder: (colonization) => const Scaffold(
-              body: Center(
-                child: Text('404: Page not found'),
-              ),
-            ),
-          ),
-        ));
-  }
-}
+import '../models/message.dart';
+import '../services/api_service.dart';
 
 class ChatProvider extends ChangeNotifier {
   final ApiService _apiService;
@@ -74,6 +14,7 @@ class ChatProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  // TODO: Add loadMessages() method
   Future<void> loadMessages() async {
     try {
       _isLoading = true;
@@ -87,7 +28,10 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  // Set loading state, call API, update messages, handle errors
 
+  // TODO: Add createMessage(CreateMessageRequest request) method
+  // Call API to create message, add to local list
   Future<void> createMessage(CreateMessageRequest request) async {
     try {
       _isLoading = true;
@@ -102,6 +46,9 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // TODO: Add updateMessage(int id, UpdateMessageRequest request) method
+  // Call API to update message, update in local list
 
   Future<void> updateMessage(int id, UpdateMessageRequest request) async {
     try {
@@ -120,6 +67,8 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  // TODO: Add deleteMessage(int id) method
+  // Call API to delete message, remove from local list
 
   Future<void> deleteMessage(int id) async {
     try {
@@ -136,6 +85,8 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  // TODO: Add refreshMessages() method
+  // Clear current messages and reload from API
   Future<void> refreshMessages() async {
     try {
       _isLoading = true;
