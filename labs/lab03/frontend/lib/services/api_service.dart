@@ -169,7 +169,7 @@ class ApiService {
     } on TimeoutException {
       throw NetworkException('Request timed out');
     } catch (e) {
-      throw ApiException('Health check failed: $e');
+      throw UnimplementedError();
     }
   }
 }
