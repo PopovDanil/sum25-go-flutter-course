@@ -40,15 +40,20 @@ class ApiService {
   // Get all messages
   Future<List<Message>> getMessages() async {
     try {
-      final response = await client
-          .get(Uri.parse('$baseUrl/api/messages'), headers: _getHeaders())
-          .timeout(timeout);
-      return _handleResponse<List<Message>>(response, (json) {
-        final list = json['data'] as List;
-        return list.map((e) => Message.fromJson(e)).toList();
-      });
+      final response =
+          await client.get(Uri.parse('$baseUrl/api/messages')).timeout(timeout);
+
+      final json = jsonDecode(response.body);
+
+      if (json['data'] == null && json['success'] == true) {
+        return [];
+      } else if (json['data'] is List) {
+        return (json['data'] as List).map((e) => Message.fromJson(e)).toList();
+      } else {
+        throw ApiException('Unexpected response format: ${response.body}');
+      }
     } catch (e) {
-      throw NetworkException("error while getting message");
+      throw ApiException("error: $e");
     }
   }
 

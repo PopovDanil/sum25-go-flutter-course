@@ -32,13 +32,13 @@ func (h *Handler) SetupRoutes() *mux.Router {
 	r.Use(corsMiddleware)
 	v1 := r.PathPrefix("/api").Subrouter()
 
-	v1.HandleFunc("/messages", h.GetMessages).Methods("GET", "OPTIONS")
-	v1.HandleFunc("/messages", h.CreateMessage).Methods("POST", "OPTIONS")
-	v1.HandleFunc("/messages/{id:[0-9]+}", h.UpdateMessage).Methods("PUT", "OPTIONS")
-	v1.HandleFunc("/messages/{id:[0-9]+}", h.DeleteMessage).Methods("DELETE", "OPTIONS")
-	v1.HandleFunc("/status/{code:[0-9]+}", h.GetHTTPStatus).Methods("GET", "OPTIONS")
-	v1.HandleFunc("/health", h.HealthCheck).Methods("GET", "OPTIONS")
-	v1.HandleFunc("/cat/{code:[0-9]+}", h.ServeCatImage).Methods("GET", "OPTIONS")
+	v1.HandleFunc("/messages", h.GetMessages).Methods("GET")
+	v1.HandleFunc("/messages", h.CreateMessage).Methods("POST")
+	v1.HandleFunc("/messages/{id:[0-9]+}", h.UpdateMessage).Methods("PUT")
+	v1.HandleFunc("/messages/{id:[0-9]+}", h.DeleteMessage).Methods("DELETE")
+	v1.HandleFunc("/status/{code:[0-9]+}", h.GetHTTPStatus).Methods("GET")
+	v1.HandleFunc("/health", h.HealthCheck).Methods("GET")
+	v1.HandleFunc("/cat/{code:[0-9]+}", h.ServeCatImage).Methods("GET")
 
 	return &r
 }
@@ -211,6 +211,9 @@ func (h *Handler) writeError(w http.ResponseWriter, status int, message string) 
 
 // Helper function to parse JSON request body
 func (h *Handler) parseJSON(r *http.Request, dst interface{}) error {
+	if r.ContentLength == 0 {
+		return nil
+	}
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
 		return err
 	}
@@ -258,8 +261,4 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-func (h *Handler) OptionsHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
 }
