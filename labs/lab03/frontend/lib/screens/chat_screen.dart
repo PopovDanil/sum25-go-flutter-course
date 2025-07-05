@@ -14,7 +14,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final ApiService _apiService = ApiService();
+  late ApiService _apiService = ApiService();
   List<Message> _messages = [];
   bool _isLoading = false;
   String? _error;
@@ -24,7 +24,13 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _loadMessages();
+    // Get ApiService from the Provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _apiService = Provider.of<ApiService>(context, listen: false);
+      });
+      _loadMessages();
+    });
   }
 
   @override
@@ -61,9 +67,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final content = _messageController.text.trim();
 
     if (username.isEmpty || content.isEmpty) {
-      setState(() {
-        _error = "Empty username or content";
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Empty username or content")),
+      );
       return;
     }
 
@@ -75,6 +81,11 @@ class _ChatScreenState extends State<ChatScreen> {
         _messages.add(message);
       });
       _messageController.clear();
+
+      // Show success SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Message sent successfully!')),
+      );
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -110,15 +121,13 @@ class _ChatScreenState extends State<ChatScreen> {
     if (request == null) return;
 
     try {
-      setState(() async {
-        final updatedMessage =
-            await _apiService.updateMessage(message.id, request);
-        setState(() {
-          final index = _messages.indexWhere((m) => m.id == message.id);
-          if (index != -1) {
-            _messages[index] = updatedMessage;
-          }
-        });
+      final updatedMessage =
+          await _apiService.updateMessage(message.id, request);
+      setState(() {
+        final index = _messages.indexWhere((m) => m.id == message.id);
+        if (index != -1) {
+          _messages[index] = updatedMessage;
+        }
       });
     } catch (e) {
       setState(() {
@@ -166,7 +175,7 @@ class _ChatScreenState extends State<ChatScreen> {
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('HTTP ${response.statusCode}'),
+          title: Text('HTTP Status: ${response.statusCode}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -235,11 +244,11 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           TextField(
             controller: _usernameController,
-            decoration: const InputDecoration(labelText: 'Username'),
+            decoration: const InputDecoration(labelText: 'Enter your username'),
           ),
           TextField(
             controller: _messageController,
-            decoration: const InputDecoration(labelText: 'Message'),
+            decoration: const InputDecoration(labelText: 'Enter your message'),
             onSubmitted: (_) => _sendMessage(),
           ),
           Row(
@@ -258,7 +267,25 @@ class _ChatScreenState extends State<ChatScreen> {
                 tooltip: 'HTTP Status Cats',
               ),
             ],
-          )
+          ),
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: () => _showHTTPStatus(200),
+                child: const Text('200 OK'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () => _showHTTPStatus(404),
+                child: const Text('404 Not Found'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () => _showHTTPStatus(500),
+                child: const Text('500 Error'),
+              ),
+            ],
+          ),
         ],
       ),
     ); // Placeholder
@@ -269,7 +296,7 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Center(
         child: Column(
           children: [
-            const Icon(Icons.error, color: Colors.red, size: 48),
+            const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 8),
             Text(_error ?? 'Unknown error',
                 style: const TextStyle(color: Colors.red)),
@@ -306,6 +333,8 @@ class _ChatScreenState extends State<ChatScreen> {
       body = _buildLoadingWidget();
     } else if (_error != null) {
       body = _buildErrorWidget();
+    } else if (_messages.isEmpty) {
+      body = _buildEmptyState(); // <-- add this
     } else {
       body = ListView.builder(
         itemCount: _messages.length,
@@ -327,6 +356,21 @@ class _ChatScreenState extends State<ChatScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _loadMessages,
         child: const Icon(Icons.refresh),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
+          SizedBox(height: 8),
+          Text('No messages yet'),
+          SizedBox(height: 4),
+          Text('Send your first message to get started!'),
+        ],
       ),
     );
   }

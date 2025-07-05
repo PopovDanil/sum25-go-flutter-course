@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"lab03-backend/models"
 	"lab03-backend/storage"
 	"log"
@@ -31,12 +32,14 @@ func (h *Handler) SetupRoutes() *mux.Router {
 	r.Use(corsMiddleware)
 	v1 := r.PathPrefix("/api").Subrouter()
 
-	v1.HandleFunc("/messages", h.GetMessages).Methods("GET")
-	v1.HandleFunc("/messages", h.CreateMessage).Methods("POST")
-	v1.HandleFunc("/messages/{id:[0-9]+}", h.UpdateMessage).Methods("PUT")
-	v1.HandleFunc("/messages/{id:[0-9]+}", h.DeleteMessage).Methods("DELETE")
-	v1.HandleFunc("/status/{code:[0-9]+}", h.GetHTTPStatus).Methods("GET")
-	v1.HandleFunc("/health", h.HealthCheck).Methods("GET")
+	v1.HandleFunc("/messages", h.GetMessages).Methods("GET", "OPTIONS")
+	v1.HandleFunc("/messages", h.CreateMessage).Methods("POST", "OPTIONS")
+	v1.HandleFunc("/messages/{id:[0-9]+}", h.UpdateMessage).Methods("PUT", "OPTIONS")
+	v1.HandleFunc("/messages/{id:[0-9]+}", h.DeleteMessage).Methods("DELETE", "OPTIONS")
+	v1.HandleFunc("/status/{code:[0-9]+}", h.GetHTTPStatus).Methods("GET", "OPTIONS")
+	v1.HandleFunc("/health", h.HealthCheck).Methods("GET", "OPTIONS")
+	v1.HandleFunc("/cat/{code:[0-9]+}", h.ServeCatImage).Methods("GET", "OPTIONS")
+
 	return &r
 }
 
@@ -95,7 +98,7 @@ func (h *Handler) UpdateMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.Storage.Update(id, request.Content)
+	message, err := h.Storage.Update(id, request.Content)
 	if err != nil {
 		h.writeError(w, http.StatusNotFound, err.Error())
 		return
@@ -103,6 +106,7 @@ func (h *Handler) UpdateMessage(w http.ResponseWriter, r *http.Request) {
 
 	h.writeJSON(w, 200, models.APIResponse{
 		Success: true,
+		Data:    message,
 	})
 
 }
@@ -140,7 +144,7 @@ func (h *Handler) GetHTTPStatus(w http.ResponseWriter, r *http.Request) {
 
 	response := models.HTTPStatusResponse{
 		StatusCode:  code,
-		ImageURL:    fmt.Sprintf("https://http.cat/%d", code),
+		ImageURL:    fmt.Sprintf("http://%s/api/cat/%d", r.Host, code),
 		Description: getHTTPStatusDescription(code),
 	}
 
@@ -150,10 +154,35 @@ func (h *Handler) GetHTTPStatus(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *Handler) ServeCatImage(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	code := vars["code"]
+
+	if _, err := strconv.Atoi(code); err != nil {
+		h.writeError(w, http.StatusBadRequest, "Invalid status code")
+		return
+	}
+
+	resp, err := http.Get(fmt.Sprintf("https://http.cat/%s.jpg", code))
+	if err != nil {
+		h.writeError(w, http.StatusInternalServerError, "Failed to fetch image")
+		return
+	}
+	defer resp.Body.Close()
+
+	for name, values := range resp.Header {
+		for _, value := range values {
+			w.Header().Add(name, value)
+		}
+	}
+	w.WriteHeader(resp.StatusCode)
+	io.Copy(w, resp.Body)
+}
+
 // HealthCheck handles GET /api/health
 func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	h.writeJSON(w, 200, map[string]interface{}{
-		"status":         "ok",
+		"status":         "healthy",
 		"message":        "API is running",
 		"timestamp":      time.Now(),
 		"total_messages": h.Storage.Count(),
@@ -213,9 +242,23 @@ func getHTTPStatusDescription(code int) string {
 // CORS middleware
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+		allowedOrigins := map[string]bool{
+			"http://localhost:3000": true,
+			"http://localhost:8080": true,
+			"http://localhost:XXXX": true,
+		}
+
+		if allowedOrigins[origin] {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
+
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Max-Age", "43200")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
@@ -223,4 +266,8 @@ func corsMiddleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (h *Handler) OptionsHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
