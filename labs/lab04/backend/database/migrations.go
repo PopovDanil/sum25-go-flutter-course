@@ -7,7 +7,6 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-// RunMigrations runs database migrations using goose
 func RunMigrations(db *sql.DB) error {
 	if db == nil {
 		return fmt.Errorf("database connection cannot be nil")
@@ -29,7 +28,6 @@ func RunMigrations(db *sql.DB) error {
 	return nil
 }
 
-// TODO: Implement this function
 // RollbackMigration rolls back the last migration using goose
 func RollbackMigration(db *sql.DB) error {
 	if db == nil {
@@ -52,7 +50,6 @@ func RollbackMigration(db *sql.DB) error {
 	return nil
 }
 
-// TODO: Implement this function
 // GetMigrationStatus checks migration status using goose
 func GetMigrationStatus(db *sql.DB) error {
 	if db == nil {
@@ -75,7 +72,6 @@ func GetMigrationStatus(db *sql.DB) error {
 	return nil
 }
 
-// TODO: Implement this function
 // CreateMigration creates a new migration file
 func CreateMigration(name string) error {
 	// Set goose dialect for SQLite

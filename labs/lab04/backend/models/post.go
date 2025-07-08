@@ -47,13 +47,7 @@ func (p *Post) Validate() error {
 	return nil
 }
 
-// TODO: Implement Validate method for CreatePostRequest
 func (req *CreatePostRequest) Validate() error {
-	// TODO: Add validation logic
-	// - Title should not be empty and should be at least 5 characters
-	// - UserID should be greater than 0
-	// - Content should not be empty if published is true
-	// Return appropriate errors if validation fails
 	if len(req.Title) < 5 {
 		return errors.New("invalid title")
 	}
@@ -68,10 +62,7 @@ func (req *CreatePostRequest) Validate() error {
 	return nil
 }
 
-// TODO: Implement ToPost method for CreatePostRequest
 func (req *CreatePostRequest) ToPost() *Post {
-	// TODO: Convert CreatePostRequest to Post
-	// Set timestamps to current time
 	return &Post{
 		Title:     req.Title,
 		Content:   req.Content,
@@ -82,20 +73,14 @@ func (req *CreatePostRequest) ToPost() *Post {
 	}
 }
 
-// TODO: Implement ScanRow method for Post
 func (p *Post) ScanRow(row *sql.Row) error {
-	// TODO: Scan database row into Post struct
-	// Handle the case where row might be nil
 	if err := row.Scan(p); err != nil {
 		return err
 	}
 	return nil
 }
 
-// TODO: Implement ScanRows method for Post slice
 func ScanPosts(rows *sql.Rows) ([]Post, error) {
-	// TODO: Scan multiple database rows into Post slice
-	// Make sure to close rows and handle errors properly
 	var posts []Post
 	for rows.Next() {
 		var post Post

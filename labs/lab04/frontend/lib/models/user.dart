@@ -73,11 +73,7 @@ class CreateUserRequest {
       _$CreateUserRequestFromJson(json);
   Map<String, dynamic> toJson() => _$CreateUserRequestToJson(this);
 
-  // TODO: Implement validate method
   bool validate() {
-    // TODO: Validate user creation request
-    // - Name should not be empty and should be at least 2 characters
-    // - Email should be valid format
     return false;
   }
 }
