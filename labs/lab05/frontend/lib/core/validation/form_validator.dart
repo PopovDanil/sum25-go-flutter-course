@@ -1,42 +1,43 @@
 // Simple form validation with basic security checks
 
 class FormValidator {
-  // TODO: Implement validateEmail method
-  // validateEmail checks if an email is valid
-  // Requirements:
-  // - return null for valid emails
-  // - return error message for invalid emails
-  // - check basic email format (contains @ and .)
-  // - check reasonable length (max 100 characters)
   static String? validateEmail(String? email) {
-    // TODO: Implement email validation
-    // Check for null/empty, basic format, and length
-    throw UnimplementedError('FormValidator validateEmail not implemented');
+    if (email == null || email == "") {
+      throw UnimplementedError("invalid email");
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (emailRegex.hasMatch(email)) {
+      throw UnimplementedError("invalid email format");
+    }
+    if (email.length > 100) {
+      throw UnimplementedError("invalid email length");
+    }
+    return null;
   }
 
-  // TODO: Implement validatePassword method
-  // validatePassword checks if a password meets basic requirements
-  // Requirements:
-  // - return null for valid passwords
-  // - return error message for invalid passwords
-  // - minimum 6 characters
-  // - contains at least one letter and one number
   static String? validatePassword(String? password) {
-    // TODO: Implement password validation
-    // Check length and basic complexity
-    throw UnimplementedError('FormValidator validatePassword not implemented');
+    if (password == null || password == "") {
+      throw UnimplementedError("invalid email");
+    }
+    if (password.length < 6) {
+      throw UnimplementedError("invalid password length");
+    }
+
+    final hasLetter = RegExp(r'[A-Za-z]');
+    final hasDigit = RegExp(r'\d');
+
+    if (hasLetter.hasMatch(password) == false ||
+        hasDigit.hasMatch(password) == false) {
+      throw UnimplementedError("invalid password format");
+    }
+    return null;
   }
 
-  // TODO: Implement sanitizeText method
-  // sanitizeText removes basic dangerous characters
-  // Requirements:
-  // - remove < and > characters
-  // - trim whitespace
-  // - return cleaned text
   static String sanitizeText(String? text) {
-    // TODO: Implement text sanitization
-    // Clean basic dangerous characters
-    throw UnimplementedError('FormValidator sanitizeText not implemented');
+    if (text == null || text == "") {
+      return "";
+    }
+    return text.replaceAll(">", "").replaceAll("<", "").trim();
   }
 
   // TODO: Implement isValidLength method
